@@ -26,7 +26,6 @@ export const isConfigured = () => {
   return Boolean(
     firebaseConfig.apiKey && 
     firebaseConfig.apiKey !== "TU_API_KEY_AQUI" &&
-    firebaseConfig.projectId &&
-    firebaseConfig.projectId !== "vitalis-care-f0e5e" // El proyecto plantilla tiene la API de Cloud Firestore desactivada
+    firebaseConfig.projectId
   );
 };

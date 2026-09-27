@@ -7,6 +7,7 @@ import {
   initFirebaseService,
   fbLogin,
   fbRegisterPatient,
+  fbRegisterDoctor,
   fbLogout,
   fbGetCurrentUser,
   fbGetDoctors,
@@ -19,7 +20,7 @@ import {
   fbGetAllAppointments,
   fbGetAdminStats,
   syncWithServer
-} from './firebase-service.js?v=11';
+} from './firebase-service.js?v=15';
 
 // ============================================================================
 // APPLICATION STATE
@@ -28,7 +29,9 @@ const state = {
   currentUser: null,
   doctors: [],
   selectedSpecialty: 'all',
-  selectedBooking: null
+  selectedBooking: null,
+  allAppointments: [],
+  doctorSelectedDates: {}
 };
 
 // ============================================================================
@@ -53,11 +56,6 @@ const elements = {
   heroExploreBtn: document.getElementById('hero-explore-btn'),
   publicDoctorsGrid: document.getElementById('public-doctors-grid'),
   publicSpecialtyFilters: document.getElementById('public-specialty-filters'),
-
-  // 1-Click Demo
-  demoLoginPaciente: document.getElementById('demo-login-paciente'),
-  demoLoginMedico: document.getElementById('demo-login-medico'),
-  demoLoginAdmin: document.getElementById('demo-login-admin'),
 
   // Patient Portal
   patientWelcomeTitle: document.getElementById('patient-welcome-title'),
@@ -93,6 +91,17 @@ const elements = {
   statCanceladas: document.getElementById('stat-canceladas'),
   statMedicos: document.getElementById('stat-medicos'),
   statPacientes: document.getElementById('stat-pacientes'),
+
+  // Admin Doctor Management
+  btnOpenAddDoctorModal: document.getElementById('btn-open-add-doctor-modal'),
+  modalAddDoctor: document.getElementById('modal-add-doctor'),
+  modalAddDoctorClose: document.getElementById('modal-add-doctor-close'),
+  btnCloseAddDoctor: document.getElementById('btn-close-add-doctor'),
+  formAddDoctor: document.getElementById('form-add-doctor'),
+  docNewEspecialidad: document.getElementById('doc-new-especialidad'),
+  groupDocOtraSpec: document.getElementById('group-doc-otra-spec'),
+  adminDoctorsTableBody: document.getElementById('admin-doctors-table-body'),
+  adminTableDoctorsCount: document.getElementById('admin-table-doctors-count'),
 
   // Modals
   modalAuth: document.getElementById('modal-auth'),
@@ -534,16 +543,138 @@ export async function handleLogout() {
 }
 
 // ============================================================================
-// DOCTORS & HOURLY SLOTS
+// DOCTORS, SPECIALTIES & REAL-TIME INTERACTIVE CALENDAR SLOTS
 // ============================================================================
 export async function loadDoctors() {
   try {
     state.doctors = await fbGetDoctors();
+    state.allAppointments = await fbGetAllAppointments();
+    renderSpecialtyFilters();
     renderPublicDoctors();
     if (state.currentUser?.rol === 'Paciente') renderPatientDoctors();
+    if (state.currentUser?.rol === 'Admin') renderAdminDoctorsTable();
   } catch (err) {
-    console.error('Error al cargar médicos:', err);
+    console.error('Error al cargar médicos y citas:', err);
   }
+}
+
+export function renderSpecialtyFilters() {
+  const specs = new Set();
+  state.doctors.forEach(d => {
+    if (d.especialidad) specs.add(d.especialidad.trim());
+  });
+
+  const containers = [
+    elements.publicSpecialtyFilters || document.getElementById('public-specialty-filters'),
+    elements.patientSpecialtyFilters || document.getElementById('patient-specialty-filters')
+  ];
+
+  containers.forEach(container => {
+    if (!container) return;
+    const isAllActive = state.selectedSpecialty === 'all';
+    let html = `<button type="button" class="filter-chip ${isAllActive ? 'active' : ''}" data-spec="all">Todas las Especialidades</button>`;
+    specs.forEach(spec => {
+      const isActive = state.selectedSpecialty.toLowerCase() === spec.toLowerCase();
+      html += `<button type="button" class="filter-chip ${isActive ? 'active' : ''}" data-spec="${escapeHtml(spec)}">${escapeHtml(spec)}</button>`;
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        state.selectedSpecialty = e.target.dataset.spec;
+        renderPublicDoctors();
+        if (state.currentUser?.rol === 'Paciente') renderPatientDoctors();
+      });
+    });
+  });
+}
+
+export function getSlotsForDoctorAndDate(doc, dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const targetDate = new Date(y, m - 1, d);
+  const dayOfWeek = targetDate.getDay();
+
+  // Bloqueo de fines de semana para consultas estándar
+  if (dayOfWeek === 0 || dayOfWeek === 6) {
+    return { isWeekend: true, slots: [] };
+  }
+
+  let startHour = 8;
+  let endHour = 16;
+
+  if (doc.horaInicio) {
+    const h = parseInt(doc.horaInicio.split(':')[0], 10);
+    if (!isNaN(h)) startHour = h;
+  }
+  if (doc.horaFin) {
+    const h = parseInt(doc.horaFin.split(':')[0], 10);
+    if (!isNaN(h)) endHour = h;
+  }
+
+  const now = new Date();
+  const allAppointments = state.allAppointments || JSON.parse(localStorage.getItem('fb_appointments') || '[]');
+
+  // Filtrar citas activas no canceladas para este médico
+  const docAppointments = allAppointments.filter(c => 
+    (String(c.medicoId) === String(doc.id) || String(c.medicoId) === String(doc.usuarioId)) && 
+    c.estado !== 'Cancelada'
+  );
+
+  const slots = [];
+  for (let h = startHour; h < endHour; h++) {
+    const sHourStr = String(h).padStart(2, '0') + ':00';
+    const eHourStr = String(h + 1).padStart(2, '0') + ':00';
+
+    const slotStartIso = `${dateStr}T${sHourStr}:00`;
+    const slotEndIso = `${dateStr}T${eHourStr}:00`;
+
+    const slotStartDate = new Date(`${dateStr}T${sHourStr}`);
+    const slotEndDate = new Date(`${dateStr}T${eHourStr}`);
+
+    let status = 'available';
+
+    // 1. Si la fecha es hoy y la hora ya pasó en tiempo real:
+    if (slotStartDate < now) {
+      status = 'expired';
+    } 
+    // 2. Si ya hay una cita agendada activa para este turno:
+    else {
+      const isOccupied = docAppointments.some(c => {
+        const cStart = new Date(c.inicio);
+        const cEnd = new Date(c.fin);
+        return slotStartDate < cEnd && slotEndDate > cStart;
+      });
+      if (isOccupied) {
+        status = 'occupied';
+      }
+    }
+
+    slots.push({
+      inicio: slotStartIso,
+      fin: slotEndIso,
+      timeRange: `${sHourStr} - ${eHourStr}`,
+      status
+    });
+  }
+
+  return { isWeekend: false, slots };
+}
+
+export function handleDoctorDateChange(docId, newDate) {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  if (!newDate || newDate < todayStr) {
+    showToast('⚠️ No es posible seleccionar fechas pasadas. Por favor elija hoy o una fecha posterior.', 'error');
+    state.doctorSelectedDates[docId] = todayStr;
+  } else {
+    state.doctorSelectedDates[docId] = newDate;
+  }
+
+  renderPublicDoctors();
+  if (state.currentUser?.rol === 'Paciente') renderPatientDoctors();
 }
 
 export function generateHourlySlots(disponibilidades) {
@@ -573,23 +704,45 @@ export function generateHourlySlots(disponibilidades) {
 }
 
 export function renderDoctorCard(doc, isPatientView = false) {
-  const slots = generateHourlySlots(doc.disponibilidades || []);
-  const initial = doc.nombre ? doc.nombre.replace('Dr. ', '').replace('Dra. ', '').charAt(0) : 'D';
+  const initial = doc.nombre ? doc.nombre.replace('Dr. ', '').replace('Dra. ', '').replace('Dr(a). ', '').charAt(0) : 'D';
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const selectedDate = state.doctorSelectedDates[doc.id] || todayStr;
+
+  const slotsData = getSlotsForDoctorAndDate(doc, selectedDate);
 
   let slotsHtml = '';
-  if (slots.length === 0) {
-    slotsHtml = `<div class="no-slots-msg">Sin horarios disponibles actualmente.</div>`;
+  if (slotsData.isWeekend) {
+    slotsHtml = `<div class="no-slots-msg" style="color: #d97706; font-weight: 500;">🏥 El especialista atiende de Lunes a Viernes. Elija un día laboral en el calendario.</div>`;
+  } else if (slotsData.slots.length === 0) {
+    slotsHtml = `<div class="no-slots-msg">Sin horarios configurados para esta fecha.</div>`;
   } else {
-    slotsHtml = slots.slice(0, 6).map(s => `
-      <button type="button" class="slot-chip" role="button" aria-label="Reservar cita con ${escapeHtml(doc.nombre)} el ${s.display.date} de ${s.display.timeRange}" onclick="handleSlotSelection('${doc.id}', '${escapeHtml(doc.nombre)}', '${escapeHtml(doc.especialidad)}', '${s.inicio}', '${s.fin}')">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        ${s.display.date.slice(0, 6)} &bull; ${s.display.timeRange}
-      </button>
-    `).join('');
-    if (slots.length > 6) {
-      slotsHtml += `<span style="font-size: 0.75rem; color: var(--primary-600); align-self: center; font-weight:600;">+${slots.length - 6} más</span>`;
-    }
+    slotsHtml = slotsData.slots.map(s => {
+      if (s.status === 'occupied') {
+        return `
+          <button type="button" class="slot-chip occupied" disabled title="Este turno ya ha sido reservado y no está disponible">
+            🔒 ${s.timeRange} (Ocupado)
+          </button>
+        `;
+      } else if (s.status === 'expired') {
+        return `
+          <button type="button" class="slot-chip expired" disabled title="Este horario ya concluyó el día de hoy">
+            ⏰ ${s.timeRange} (Pasado)
+          </button>
+        `;
+      } else {
+        return `
+          <button type="button" class="slot-chip available" role="button" aria-label="Reservar cita con ${escapeHtml(doc.nombre)} el ${selectedDate} de ${s.timeRange}" onclick="handleSlotSelection('${doc.id}', '${escapeHtml(doc.nombre)}', '${escapeHtml(doc.especialidad)}', '${s.inicio}', '${s.fin}')">
+            🟢 ${s.timeRange} (Libre)
+          </button>
+        `;
+      }
+    }).join('');
   }
+
+  const availableCount = slotsData.isWeekend ? 0 : slotsData.slots.filter(s => s.status === 'available').length;
+  const totalCount = slotsData.isWeekend ? 0 : slotsData.slots.length;
 
   return `
     <div class="doctor-card">
@@ -598,21 +751,31 @@ export function renderDoctorCard(doc, isPatientView = false) {
         <div class="doctor-meta">
           <h3>${escapeHtml(doc.nombre)}</h3>
           <span class="doctor-spec">${escapeHtml(doc.especialidad)}</span>
-          <div class="doctor-license">Licencia: ${escapeHtml(doc.numeroLicencia)}</div>
+          <div class="doctor-license">Licencia: ${escapeHtml(doc.numeroLicencia || 'MED-REG')}</div>
         </div>
       </div>
+
+      <!-- SELECTOR DE FECHA / CALENDARIO INTERACTIVO -->
+      <div class="doctor-date-control">
+        <label for="date-picker-${doc.id}">📅 Elegir Fecha:</label>
+        <input type="date" id="date-picker-${doc.id}" class="doctor-date-input" value="${selectedDate}" min="${todayStr}" onchange="handleDoctorDateChange('${doc.id}', this.value)">
+      </div>
+
       <div class="doctor-slots-box">
         <div class="slots-label">
-          <span>Horarios Disponibles</span>
-          <span style="font-weight:700; color:var(--primary-700);">${slots.length} turnos</span>
+          <span>Turnos para el ${selectedDate}</span>
+          <span style="font-weight:700; color:${availableCount > 0 ? '#16a34a' : '#ef4444'};">
+            ${availableCount} libres / ${totalCount} turnos
+          </span>
         </div>
         <div class="slots-chips">
           ${slotsHtml}
         </div>
       </div>
+
       ${isPatientView ? `
-        <button type="button" class="btn btn-primary btn-sm btn-block" onclick="handleBookFirstSlot('${doc.id}')">
-          ⚡ Reservar Próximo Turno
+        <button type="button" class="btn btn-primary btn-sm btn-block" onclick="handleBookFirstSlot('${doc.id}')" ${availableCount === 0 ? 'disabled style="opacity: 0.6; cursor: not-allowed;"' : ''}>
+          ⚡ ${availableCount > 0 ? 'Reservar Primer Turno Libre' : 'Sin Turnos Libres Hoy'}
         </button>
       ` : `
         <button type="button" class="btn btn-secondary btn-sm btn-block" onclick="openAuthModal('login')">
@@ -639,8 +802,20 @@ export function renderPatientDoctors() {
   elements.patientDoctorsGrid.innerHTML = filtered.map(d => renderDoctorCard(d, true)).join('');
 }
 
-export function renderAdminDoctors() {
-  // Obsoleto: El catálogo médico no pertenece a la vista del Administrador
+export function handleBookFirstSlot(docId) {
+  const doc = state.doctors.find(d => d.id === docId);
+  if (!doc) return;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const selectedDate = state.doctorSelectedDates[doc.id] || todayStr;
+  const slotsData = getSlotsForDoctorAndDate(doc, selectedDate);
+
+  const firstAvailable = slotsData.slots.find(s => s.status === 'available');
+  if (firstAvailable) {
+    handleSlotSelection(doc.id, doc.nombre, doc.especialidad, firstAvailable.inicio, firstAvailable.fin);
+  } else {
+    showToast('No hay turnos libres para la fecha seleccionada. Por favor elija otro día en el calendario.', 'info');
+  }
 }
 
 export function handleSlotSelection(medicoId, docName, docSpec, inicio, fin) {
@@ -670,17 +845,6 @@ export function handleSlotSelection(medicoId, docName, docSpec, inicio, fin) {
   if (modal) {
     modal.style.display = 'flex';
     modal.classList.add('active');
-  }
-}
-
-export function handleBookFirstSlot(docId) {
-  const doc = state.doctors.find(d => d.id === docId);
-  if (!doc) return;
-  const slots = generateHourlySlots(doc.disponibilidades || []);
-  if (slots.length > 0) {
-    handleSlotSelection(doc.id, doc.nombre, doc.especialidad, slots[0].inicio, slots[0].fin);
-  } else {
-    showToast('Este especialista no cuenta con horarios libres en este momento.', 'info');
   }
 }
 
@@ -773,6 +937,7 @@ export async function handleCancelAppointment(citaId) {
   try {
     await fbCancelAppointment(citaId);
     showToast('Cita médica cancelada correctamente.', 'info');
+    await loadDoctors();
     await loadPatientAppointments();
   } catch (err) {
     showToast(err.message, 'error');
@@ -904,6 +1069,7 @@ export async function handleDoctorCancelAppointment(citaId) {
   try {
     await fbCancelAppointment(citaId);
     showToast('❌ Cita médica cancelada correctamente.', 'info');
+    await loadDoctors();
     await loadDoctorAppointments();
     if (state.currentUser?.rol === 'Admin') await loadAdminView();
   } catch (err) {
@@ -949,6 +1115,7 @@ async function loadAdminView() {
   if (!state.currentUser || state.currentUser.rol !== 'Admin') return;
   await loadAdminStats();
   await loadAdminAppointmentsTable();
+  renderAdminDoctorsTable();
   await loadServerTelemetry();
 }
 
@@ -1074,9 +1241,158 @@ export async function handleAdminForceCancel(citaId) {
   try {
     await fbForceCancelAppointment(citaId);
     showToast('🚨 Cancelación forzada de emergencia ejecutada correctamente.', 'info');
+    await loadDoctors();
     await loadAdminView();
   } catch (err) {
     showToast(err.message || 'Error en la cancelación forzada.', 'error');
+  }
+}
+
+// ============================================================================
+// ADMIN DOCTORS MANAGEMENT (ALTA DE MÉDICOS Y ESPECIALIDADES)
+// ============================================================================
+export function openAddDoctorModal() {
+  if (state.currentUser?.rol !== 'Admin') {
+    showToast('Solo los administradores pueden registrar nuevos médicos.', 'error');
+    return;
+  }
+  const modal = elements.modalAddDoctor || document.getElementById('modal-add-doctor');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+    document.getElementById('doc-new-nombre')?.focus();
+  }
+}
+
+export function closeAddDoctorModal() {
+  const modal = elements.modalAddDoctor || document.getElementById('modal-add-doctor');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('active');
+  }
+  if (elements.formAddDoctor) {
+    elements.formAddDoctor.reset();
+  }
+  if (elements.groupDocOtraSpec) {
+    elements.groupDocOtraSpec.style.display = 'none';
+  }
+}
+
+export function renderAdminDoctorsTable() {
+  const tbody = elements.adminDoctorsTableBody || document.getElementById('admin-doctors-table-body');
+  const countBadge = elements.adminTableDoctorsCount || document.getElementById('admin-table-doctors-count');
+  if (countBadge) countBadge.textContent = `${state.doctors.length} médicos`;
+  if (!tbody) return;
+
+  if (!state.doctors || state.doctors.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 2rem; color: var(--slate-500);">
+          No hay médicos registrados en el sistema.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = state.doctors.map(d => {
+    return `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-100); color: var(--primary-700); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+              ${d.nombreCompleto ? d.nombreCompleto.charAt(0).toUpperCase() : 'M'}
+            </div>
+            <div>
+              <div style="font-weight: 600; color: var(--slate-800);">${escapeHtml(d.nombreCompleto)}</div>
+              <div style="font-size: 0.75rem; color: var(--slate-400);">ID: ${escapeHtml(d.id)}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="badge" style="background: var(--primary-50); color: var(--primary-700); border: 1px solid var(--primary-200); font-weight: 600; padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); font-size: 0.8rem;">
+            🩺 ${escapeHtml(d.especialidad || 'General')}
+          </span>
+        </td>
+        <td>
+          <span style="font-family: monospace; font-size: 0.85rem; font-weight: 600; color: var(--slate-700);">${escapeHtml(d.numeroLicencia || 'N/A')}</span>
+        </td>
+        <td>
+          <span style="font-family: monospace; font-size: 0.85rem; color: var(--slate-700);">${escapeHtml(d.numeroDocumento || 'N/A')}</span>
+        </td>
+        <td>
+          <span style="font-size: 0.85rem; color: var(--slate-600);">${escapeHtml(d.email || '')}</span>
+        </td>
+        <td>
+          <span style="font-size: 0.82rem; color: var(--slate-600); font-weight: 500;">🕒 ${escapeHtml(d.horaInicio || '08:00')} - ${escapeHtml(d.horaFin || '16:00')}</span>
+        </td>
+        <td>
+          <span class="status-badge Confirmada" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">Activo</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+export async function handleAddDoctorSubmit(e) {
+  e.preventDefault();
+  if (state.currentUser?.rol !== 'Admin') {
+    showToast('Acción denegada: Solo el administrador puede registrar nuevos médicos.', 'error');
+    return;
+  }
+
+  const nombreCompleto = document.getElementById('doc-new-nombre')?.value.trim();
+  const numeroDocumento = document.getElementById('doc-new-cedula')?.value.trim();
+  const selectSpec = document.getElementById('doc-new-especialidad')?.value;
+  const otraSpec = document.getElementById('doc-new-otra-spec')?.value.trim();
+  const especialidad = (selectSpec === '__otra__' ? otraSpec : selectSpec) || 'Medicina General';
+  const numeroLicencia = document.getElementById('doc-new-licencia')?.value.trim();
+  const email = document.getElementById('doc-new-email')?.value.trim();
+  const password = document.getElementById('doc-new-password')?.value;
+  const horaInicio = document.getElementById('doc-new-inicio')?.value || '08:00';
+  const horaFin = document.getElementById('doc-new-fin')?.value || '16:00';
+
+  if (!nombreCompleto || !numeroDocumento || !email || !password || !numeroLicencia) {
+    showToast('Por favor completa todos los campos obligatorios.', 'error');
+    return;
+  }
+
+  const submitBtn = elements.formAddDoctor?.querySelector('button[type="submit"]');
+  const originalText = submitBtn ? submitBtn.innerHTML : 'Dar de Alta al Médico';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
+        <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+        <path d="M12 2a10 10 0 0 1 10 10"/>
+      </svg> Creando credenciales...
+    `;
+  }
+
+  try {
+    const newDoc = await fbRegisterDoctor({
+      nombreCompleto,
+      numeroDocumento,
+      especialidad,
+      numeroLicencia,
+      email,
+      password,
+      horaInicio,
+      horaFin
+    });
+
+    closeAddDoctorModal();
+    showToast(`✅ Especialista ${newDoc.nombreCompleto} (${newDoc.especialidad}) dado de alta con éxito en la plataforma.`, 'success');
+    await loadDoctors();
+    await loadAdminStats();
+    renderAdminDoctorsTable();
+  } catch (err) {
+    showToast(err.message || 'Error al registrar al médico.', 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    }
   }
 }
 
@@ -1107,6 +1423,11 @@ window.renderAdminAppointmentsTable = renderAdminAppointmentsTable;
 window.uploadToCloudinary = uploadToCloudinary;
 window.openDocumentViewerModal = openDocumentViewerModal;
 window.closeDocumentViewerModal = closeDocumentViewerModal;
+window.openAddDoctorModal = openAddDoctorModal;
+window.closeAddDoctorModal = closeAddDoctorModal;
+window.renderAdminDoctorsTable = renderAdminDoctorsTable;
+window.handleDoctorDateChange = handleDoctorDateChange;
+window.renderSpecialtyFilters = renderSpecialtyFilters;
 
 // ============================================================================
 // EVENT LISTENERS & EVENT DELEGATION (CIERRE 100% GARANTIZADO DE BOTONES Y MODALES)
@@ -1152,10 +1473,23 @@ function bindEventListeners() {
     document.getElementById('landing-doctors-section')?.scrollIntoView({ behavior: 'smooth' });
   });
 
-  // 1-Click Quick Demo Logins
-  elements.demoLoginPaciente?.addEventListener('click', () => handleLogin('maria@citas.local', 'Paciente123!'));
-  elements.demoLoginMedico?.addEventListener('click', () => handleLogin('ana@citas.local', 'Medico123!'));
-  elements.demoLoginAdmin?.addEventListener('click', () => handleLogin('admin@citas.local', 'Admin123!'));
+  // Admin Doctor Management Modal & Specialty Select
+  elements.btnOpenAddDoctorModal?.addEventListener('click', openAddDoctorModal);
+  elements.modalAddDoctorClose?.addEventListener('click', closeAddDoctorModal);
+  elements.btnCloseAddDoctor?.addEventListener('click', closeAddDoctorModal);
+  elements.docNewEspecialidad?.addEventListener('change', (e) => {
+    if (elements.groupDocOtraSpec) {
+      elements.groupDocOtraSpec.style.display = e.target.value === '__otra__' ? 'block' : 'none';
+      const inputOtra = document.getElementById('doc-new-otra-spec');
+      if (e.target.value === '__otra__' && inputOtra) {
+        inputOtra.required = true;
+        inputOtra.focus();
+      } else if (inputOtra) {
+        inputOtra.required = false;
+      }
+    }
+  });
+  elements.formAddDoctor?.addEventListener('submit', handleAddDoctorSubmit);
 
   // Auth Modal Buttons
   elements.modalAuthClose?.addEventListener('click', closeAuthModal);
@@ -1336,10 +1670,17 @@ function bindEventListeners() {
       return;
     }
 
+    // Cerrar modal de Add Doctor
+    if (e.target.closest('#modal-add-doctor-close') || e.target.closest('#btn-close-add-doctor')) {
+      closeAddDoctorModal();
+      return;
+    }
+
     // Clic en fondo exterior (backdrop) del modal
     if (e.target.classList.contains('modal-overlay')) {
       closeAuthModal();
       closeBookingModal();
+      closeAddDoctorModal();
     }
   });
 
@@ -1348,6 +1689,7 @@ function bindEventListeners() {
     if (e.key === 'Escape' || e.key === 'Esc') {
       closeAuthModal();
       closeBookingModal();
+      closeAddDoctorModal();
     }
   });
 }

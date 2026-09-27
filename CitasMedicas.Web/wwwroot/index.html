@@ -6,7 +6,7 @@
   <title>Vitalis Care | Plataforma Integral de Gestión de Citas Médicas</title>
   <meta name="description" content="Vitalis Care - Sistema profesional para agendamiento y gestión de citas médicas en tiempo real con especialistas certificados.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>">
-  <link rel="stylesheet" href="css/styles.css?v=13">
+  <link rel="stylesheet" href="css/styles.css?v=16">
 </head>
 <body>
 
@@ -315,6 +315,42 @@
         </div>
       </div>
 
+      <!-- GESTIÓN DE PERSONAL MÉDICO Y ESPECIALISTAS -->
+      <div class="card" style="margin-top: 1.5rem;">
+        <div class="section-header" style="margin-bottom: 1.25rem;">
+          <div>
+            <h3 class="section-title" style="font-size: 1.15rem;">👨‍⚕️ Plantilla de Especialistas Médicos</h3>
+            <p class="section-subtitle">Gestión del cuerpo médico, asignación de especialidades clínicas y registro de credenciales.</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <span class="badge" id="admin-table-doctors-count" style="background: var(--primary-100); color: var(--primary-800); font-weight: 700; padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.8rem;">0 médicos</span>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-open-add-doctor-modal" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              + Registrar Nuevo Médico
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="admin-doctors-table">
+            <thead>
+              <tr>
+                <th>Médico</th>
+                <th>Especialidad</th>
+                <th>Licencia</th>
+                <th>Cédula</th>
+                <th>Correo Institucional</th>
+                <th>Jornada</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="admin-doctors-table-body">
+              <!-- Renderizado dinámico desde app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- SUPERVISIÓN GLOBAL DE CITAS MÉDICAS -->
       <div class="card" style="margin-top: 1.5rem;">
         <div class="section-header" style="margin-bottom: 1.25rem;">
@@ -379,12 +415,6 @@
             <button type="submit" class="btn btn-primary btn-block" style="flex: 2;">
               Ingresar al Sistema
             </button>
-          </div>
-          <div style="margin-top: 1.25rem; padding: 0.65rem 0.85rem; background: var(--slate-100); border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--slate-600); text-align: center; border: 1px dashed var(--slate-300);">
-            <span style="font-weight: 600;">Acceso rápido de prueba:</span>
-            <button type="button" id="demo-login-paciente" style="background: none; border: none; color: var(--primary-600); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0 4px; font-size: inherit;">Paciente</button> &bull;
-            <button type="button" id="demo-login-medico" style="background: none; border: none; color: var(--accent-teal); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0 4px; font-size: inherit;">Médico</button> &bull;
-            <button type="button" id="demo-login-admin" style="background: none; border: none; color: var(--accent-indigo); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0 4px; font-size: inherit;">Admin</button>
           </div>
         </form>
 
@@ -474,6 +504,87 @@
     </div>
   </div>
 
+  <!-- ==================== REGISTRO DE NUEVO MÉDICO (SOLO ADMIN) ==================== -->
+  <div class="modal-overlay" id="modal-add-doctor" role="dialog" aria-modal="true" aria-labelledby="modal-add-doctor-title">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 id="modal-add-doctor-title">👨‍⚕️ Alta de Nuevo Especialista Médico</h3>
+        <button class="modal-close-btn" id="modal-add-doctor-close" role="button" aria-label="Cerrar modal de alta médica">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-add-doctor">
+          <div class="form-row">
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label" for="doc-new-nombre">Nombre y Apellido del Facultativo</label>
+              <input type="text" id="doc-new-nombre" class="form-control" placeholder="Ej. Dra. Sofía Mendoza" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="doc-new-cedula">Cédula de Identidad</label>
+              <input type="text" id="doc-new-cedula" class="form-control" placeholder="1712345678" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="doc-new-especialidad">Especialidad Médica</label>
+              <select id="doc-new-especialidad" class="form-control" required>
+                <option value="Cardiología">Cardiología</option>
+                <option value="Dermatología">Dermatología</option>
+                <option value="Pediatría">Pediatría</option>
+                <option value="Medicina General">Medicina General</option>
+                <option value="Neurología">Neurología</option>
+                <option value="Traumatología">Traumatología</option>
+                <option value="Ginecología">Ginecología</option>
+                <option value="Oftalmología">Oftalmología</option>
+                <option value="Psiquiatría">Psiquiatría</option>
+                <option value="__otra__">+ Otra Especialidad...</option>
+              </select>
+            </div>
+            <div class="form-group" id="group-doc-otra-spec" style="display: none;">
+              <label class="form-label" for="doc-new-otra-spec">Especifique Especialidad</label>
+              <input type="text" id="doc-new-otra-spec" class="form-control" placeholder="Ej. Endocrinología">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="doc-new-licencia">N° Licencia Médica / Registro</label>
+              <input type="text" id="doc-new-licencia" class="form-control" placeholder="MED-3080" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="doc-new-email">Correo Institucional (Login)</label>
+              <input type="email" id="doc-new-email" class="form-control" placeholder="sofia@citas.local" required autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="doc-new-password">Contraseña de Acceso</label>
+              <input type="password" id="doc-new-password" class="form-control" placeholder="Mínimo 6 caracteres" required autocomplete="new-password">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="doc-new-inicio">Hora Inicio de Jornada</label>
+              <input type="time" id="doc-new-inicio" class="form-control" value="08:00" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="doc-new-fin">Hora Fin de Jornada</label>
+              <input type="time" id="doc-new-fin" class="form-control" value="16:00" required>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary btn-block" id="btn-close-add-doctor" style="flex: 1;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary btn-block" style="flex: 2;">
+              Dar de Alta al Médico
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== DOCUMENT VIEWER MODAL ==================== -->
   <div class="modal-overlay" id="modal-document-viewer" role="dialog" aria-modal="true" aria-labelledby="modal-doc-title">
     <div class="modal-card" style="max-width: 620px;">
@@ -516,6 +627,6 @@
   </footer>
 
   <!-- ==================== SCRIPT PRINCIPAL ==================== -->
-  <script type="module" src="js/app.js?v=13"></script>
+  <script type="module" src="js/app.js?v=16"></script>
 </body>
 </html>

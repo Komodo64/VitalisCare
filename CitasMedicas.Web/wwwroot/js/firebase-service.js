@@ -446,19 +446,131 @@ export function fbGetCurrentUser() {
 // MÉDICOS Y DISPONIBILIDADES
 // ============================================================================
 export async function fbGetDoctors() {
+  const localDoctors = JSON.parse(localStorage.getItem('fb_doctors') || JSON.stringify(SEED_DOCTORS));
+
   if (useRealFirebase && db) {
     try {
       const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
       const snapshot = await getDocs(collection(db, 'medicos'));
       if (!snapshot.empty) {
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const firestoreDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const map = new Map();
+        localDoctors.forEach(d => map.set(d.id, d));
+        firestoreDocs.forEach(d => map.set(d.id, d));
+        const merged = Array.from(map.values());
+        localStorage.setItem('fb_doctors', JSON.stringify(merged));
+        return merged;
       }
     } catch (err) {
       console.warn('Firestore no disponible para lectura de médicos, usando datos locales:', err.message);
     }
   }
 
-  return JSON.parse(localStorage.getItem('fb_doctors') || JSON.stringify(SEED_DOCTORS));
+  return localDoctors;
+}
+
+export async function fbRegisterDoctor({
+  nombreCompleto,
+  email,
+  password,
+  numeroLicencia,
+  especialidad,
+  numeroDocumento = '',
+  documentoUrl = '',
+  horaInicio = '08:00',
+  horaFin = '16:00'
+}) {
+  const normEmail = email.toLowerCase().trim();
+  const doctors = JSON.parse(localStorage.getItem('fb_doctors') || JSON.stringify(SEED_DOCTORS));
+  const users = JSON.parse(localStorage.getItem('fb_users') || JSON.stringify(SEED_USERS));
+
+  if (users.some(u => u.email.toLowerCase() === normEmail) || doctors.some(d => d.email?.toLowerCase() === normEmail)) {
+    throw new Error('Ya existe una cuenta médica o de usuario registrada con este correo electrónico.');
+  }
+
+  const newDocId = 'med-' + Date.now();
+  const newUserId = 'user-' + Date.now();
+  const pwdHash = await hashPassword(password);
+
+  // Generar disponibilidades para los próximos 30 días hábiles
+  const disponibilidades = [];
+  const today = new Date();
+  let addedDays = 0;
+  let dayOffset = 0;
+
+  while (addedDays < 30) {
+    const candidate = new Date(today);
+    candidate.setDate(today.getDate() + dayOffset);
+    const dayOfWeek = candidate.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Lunes a Viernes
+      const year = candidate.getFullYear();
+      const month = String(candidate.getMonth() + 1).padStart(2, '0');
+      const day = String(candidate.getDate()).padStart(2, '0');
+      disponibilidades.push({
+        id: `disp-${newDocId}-${addedDays + 1}`,
+        inicio: `${year}-${month}-${day}T${horaInicio}:00`,
+        fin: `${year}-${month}-${day}T${horaFin}:00`,
+        disponible: true
+      });
+      addedDays++;
+    }
+    dayOffset++;
+  }
+
+  const prefix = nombreCompleto.trim().startsWith('Dr') ? '' : 'Dr(a). ';
+  const finalName = `${prefix}${nombreCompleto.trim()}`;
+
+  const newDoctorObj = {
+    id: newDocId,
+    usuarioId: newUserId,
+    nombre: finalName,
+    especialidad,
+    numeroLicencia,
+    email: normEmail,
+    numeroDocumento,
+    documentoUrl,
+    horaInicio,
+    horaFin,
+    disponibilidades
+  };
+
+  const newUserObj = {
+    id: newUserId,
+    email: normEmail,
+    nombreCompleto: finalName,
+    rol: 'Medico',
+    medicoId: newDocId,
+    numeroDocumento,
+    documentoUrl,
+    passwordHash: pwdHash,
+    password: password
+  };
+
+  if (useRealFirebase && db) {
+    try {
+      const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+      await withTimeout(setDoc(doc(db, 'medicos', newDocId), newDoctorObj), 2500);
+      await withTimeout(setDoc(doc(db, 'usuarios', newUserId), newUserObj), 2500);
+    } catch (e) {
+      console.warn('Firestore no disponible al guardar médico, usando almacenamiento local:', e.message);
+    }
+  }
+
+  doctors.push(newDoctorObj);
+  localStorage.setItem('fb_doctors', JSON.stringify(doctors));
+
+  users.push(newUserObj);
+  localStorage.setItem('fb_users', JSON.stringify(users));
+
+  try {
+    await fetch('/api/sync/user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUserObj)
+    });
+  } catch (_) {}
+
+  return newDoctorObj;
 }
 
 // ============================================================================

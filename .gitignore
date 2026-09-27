@@ -37,6 +37,7 @@ yarn-error.log*
 # Herramientas de diagnóstico y logs
 *.log
 .system_generated/
+.firebase/
 App_Data/logs/
 TestResults/
 reports/nbomber-report/
