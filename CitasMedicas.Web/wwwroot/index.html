@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vitalis Care | Plataforma Integral de Gestión de Citas Médicas</title>
+  <meta name="description" content="Vitalis Care - Sistema profesional para agendamiento y gestión de citas médicas en tiempo real con especialistas certificados.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>">
+  <link rel="stylesheet" href="css/styles.css?v=13">
+</head>
+<body>
+
+  <!-- ==================== HEADER & NAVBAR ==================== -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="javascript:void(0)" class="brand-link" id="brand-home-btn" title="Ir al Inicio">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+          </svg>
+        </div>
+        <span class="brand-text">Vitalis<span>Care</span></span>
+        <span class="brand-badge" id="firebase-status-badge">🟢 Cloud Live</span>
+      </a>
+
+      <nav class="nav-menu" id="nav-menu">
+        <button class="nav-item active" id="nav-home-btn">Inicio</button>
+        <button class="nav-item" id="nav-doctors-btn">Especialistas Médicos</button>
+      </nav>
+
+      <div class="nav-auth" id="nav-auth-area">
+        <!-- Renderizado dinámico desde JS: botones Iniciar Sesión / Registrarse o Usuario / Salir -->
+        <button class="btn btn-secondary btn-sm" id="btn-open-login">Iniciar Sesión</button>
+        <button class="btn btn-primary btn-sm" id="btn-open-register">Registrarse</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+  <main class="main-content">
+
+    <!-- ==================== 1. LANDING & DEMO ACCESS ==================== -->
+    <section id="view-landing" class="view-section active">
+      
+      <!-- HERO BANNER -->
+      <div class="hero-card">
+        <div class="hero-content">
+          <div class="hero-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            Salud Digital &bull; Agendamiento Médico en Tiempo Real
+          </div>
+          <h1 class="hero-title">Tu salud en las mejores manos, a un clic de distancia</h1>
+          <p class="hero-desc">
+            Conecta con especialistas médicos certificados. Consulta horarios disponibles, agenda tu consulta médica al instante y gestiona tus citas con total tranquilidad y seguridad.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="hero-book-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              Agendar Cita Médica
+            </button>
+            <button class="btn btn-secondary" id="hero-explore-btn">
+              Ver Especialistas Disponibles
+            </button>
+          </div>
+          <div class="hero-trust-badges">
+            <div class="hero-trust-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Atención Segura y Certificada
+            </div>
+            <div class="hero-trust-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Confirmación Inmediata
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-image-wrapper">
+          <img src="images/hospital.jpg" alt="Centro Médico Hospitalario Vitalis Care">
+          <div class="hero-image-caption">
+            <span>🏥 Centro Hospitalario Vitalis Care</span>
+            <span style="color: #38bdf8; font-weight: 700;">Atención 24/7</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIRECTORY PREVIEW ON LANDING -->
+      <div class="card" id="landing-doctors-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Especialistas Médicos Disponibles</h2>
+            <p class="section-subtitle">Selecciona un médico y un horario libre para agendar tu consulta médica</p>
+          </div>
+          <div class="filter-bar" id="public-specialty-filters">
+            <button class="filter-chip active" data-spec="all">Todas las Especialidades</button>
+            <button class="filter-chip" data-spec="Cardiología">Cardiología</button>
+            <button class="filter-chip" data-spec="Dermatología">Dermatología</button>
+          </div>
+        </div>
+        <div class="doctor-grid" id="public-doctors-grid">
+          <!-- Se puebla dinámicamente con JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== 2. PATIENT PORTAL ==================== -->
+    <section id="view-patient" class="view-section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title" id="patient-welcome-title">Portal del Paciente</h1>
+          <p class="section-subtitle">Gestiona tus consultas médicas y programa nuevas atenciones con facilidad.</p>
+        </div>
+      </div>
+
+      <!-- TABS PACIENTE -->
+      <div class="tab-container">
+        <button class="tab-btn active" id="tab-patient-book">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><line x1="12" x2="12" y1="14" y2="18"/><line x1="10" x2="14" y1="16" y2="16"/></svg>
+          Agendar Nueva Cita
+        </button>
+        <button class="tab-btn" id="tab-patient-mycitas">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Mis Citas Médicas <span class="tab-badge" id="patient-citas-count">0</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: CATÁLOGO Y AGENDAMIENTO -->
+      <div id="patient-book-content">
+        <div class="filter-bar" id="patient-specialty-filters">
+          <button class="filter-chip active" data-spec="all">Todas las Especialidades</button>
+          <button class="filter-chip" data-spec="Cardiología">Cardiología</button>
+          <button class="filter-chip" data-spec="Dermatología">Dermatología</button>
+        </div>
+        <div class="doctor-grid" id="patient-doctors-grid">
+          <!-- Tarjetas de médicos con slots clickeables -->
+        </div>
+      </div>
+
+      <!-- TAB 2: MIS CITAS -->
+      <div id="patient-mycitas-content" style="display: none;">
+        <div class="appointments-grid" id="patient-citas-list">
+          <!-- Citas del paciente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 3. DOCTOR PORTAL ==================== -->
+    <section id="view-doctor" class="view-section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title" id="doctor-welcome-title">Agenda Médica</h1>
+          <p class="section-subtitle">Gestión de consultas programadas, revisión de pacientes y control de estados.</p>
+        </div>
+        <div id="doctor-profile-badge">
+          <!-- Cargado por JS -->
+        </div>
+      </div>
+
+      <div class="tab-container">
+        <button class="tab-btn active" id="tab-doctor-agenda">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          Pacientes Citados <span class="tab-badge" id="doctor-citas-count">0</span>
+        </button>
+        <button class="tab-btn" id="tab-doctor-slots">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Mis Franjas Horarias
+        </button>
+      </div>
+
+      <!-- DOCTOR TAB 1: AGENDA -->
+      <div id="doctor-agenda-content">
+        <div class="appointments-grid" id="doctor-citas-list">
+          <!-- Citas asignadas al doctor -->
+        </div>
+      </div>
+
+      <!-- DOCTOR TAB 2: SLOTS -->
+      <div id="doctor-slots-content" style="display: none;">
+        <div class="card">
+          <h3 class="section-title" style="font-size: 1.15rem; margin-bottom: 0.5rem;">Ventanas de Disponibilidad Activas</h3>
+          <p class="section-subtitle" style="margin-bottom: 1.5rem;">Bloques de tiempo configurados donde los pacientes pueden programar citas con usted.</p>
+          <div id="doctor-slots-list" class="slots-chips">
+            <!-- Slots -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 4. ADMIN DASHBOARD ==================== -->
+    <section id="view-admin" class="view-section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Panel de Control Administrativo</h1>
+          <p class="section-subtitle">Métricas del sistema en tiempo real y supervisión médica global.</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh-stats">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Actualizar Métricas
+        </button>
+      </div>
+
+      <!-- KPI STATS GRID -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📅</div>
+          <div>
+            <div class="stat-value" id="stat-total-citas">0</div>
+            <div class="stat-label">Citas Totales</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">⏳</div>
+          <div>
+            <div class="stat-value" id="stat-pendientes">0</div>
+            <div class="stat-label">Pendientes</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div>
+            <div class="stat-value" id="stat-confirmadas">0</div>
+            <div class="stat-label">Confirmadas</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon indigo" aria-hidden="true">🩺</div>
+          <div>
+            <div class="stat-value" id="stat-completadas">0</div>
+            <div class="stat-label">Completadas</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon rose" aria-hidden="true">❌</div>
+          <div>
+            <div class="stat-value" id="stat-canceladas">0</div>
+            <div class="stat-label">Citas Canceladas</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon teal" aria-hidden="true">👨‍⚕️</div>
+          <div>
+            <div class="stat-value" id="stat-medicos">0</div>
+            <div class="stat-label">Médicos Activos</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon rose">👥</div>
+          <div>
+            <div class="stat-value" id="stat-pacientes">0</div>
+            <div class="stat-label">Pacientes Registrados</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MONITOR DE TELEMETRÍA Y RECURSOS DEL SERVIDOR (.NET 9) -->
+      <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f8fafc; border: 1px solid #334155; box-shadow: var(--shadow-md);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-size: 1.4rem;">📊</span>
+            <div>
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: #38bdf8; margin: 0;">Monitor de Recursos del Servidor (.NET 9)</h3>
+              <p style="font-size: 0.82rem; color: #94a3b8; margin: 0.15rem 0 0 0;">Telemetría en tiempo real del proceso, memoria, hilos y base de datos.</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm" id="btn-refresh-telemetry" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-weight: 600; cursor: pointer; border-radius: var(--radius-sm); padding: 0.4rem 0.8rem;">
+            🔄 Refrescar Recursos
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+          <!-- Memoria RAM Proceso -->
+          <div style="background: rgba(255, 255, 255, 0.05); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Memoria RAM (Working Set)</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: #38bdf8; margin-top: 0.25rem;" id="telem-ram">- MB</div>
+            <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.2rem;">Consumo físico del proceso</div>
+          </div>
+
+          <!-- Memoria Heap GC -->
+          <div style="background: rgba(255, 255, 255, 0.05); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Heap Garbage Collector</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: #4ade80; margin-top: 0.25rem;" id="telem-gc">- MB</div>
+            <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.2rem;">Objetos vivos administrados</div>
+          </div>
+
+          <!-- Hilos de Ejecución -->
+          <div style="background: rgba(255, 255, 255, 0.05); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Hilos Activos (Threads)</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: #fbbf24; margin-top: 0.25rem;" id="telem-threads">-</div>
+            <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.2rem;">ThreadPool concurrente</div>
+          </div>
+
+          <!-- Tiempo de Actividad Uptime -->
+          <div style="background: rgba(255, 255, 255, 0.05); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Tiempo de Actividad</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: #c084fc; margin-top: 0.25rem;" id="telem-uptime">00:00:00</div>
+            <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.2rem;">Uptime del servidor</div>
+          </div>
+
+          <!-- Base de Datos SQLite -->
+          <div style="background: rgba(255, 255, 255, 0.05); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Base de Datos SQLite</div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: #f43f5e; margin-top: 0.25rem;" id="telem-db">- KB</div>
+            <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.2rem;">Archivo citasmedicas.db</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.8rem; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <span id="telem-runtime">Runtime: .NET 9.0 (x64)</span>
+          <span style="display: flex; align-items: center; gap: 0.35rem;">
+            <span style="display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
+            <span style="color: #22c55e; font-weight: 600;" id="telem-status">Servidor Saludable (Healthy)</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- SUPERVISIÓN GLOBAL DE CITAS MÉDICAS -->
+      <div class="card" style="margin-top: 1.5rem;">
+        <div class="section-header" style="margin-bottom: 1.25rem;">
+          <div>
+            <h3 class="section-title" style="font-size: 1.15rem;">Supervisión Global de Citas Médicas</h3>
+            <p class="section-subtitle">Listado de consultas de la jornada y cancelaciones administrativas de emergencia.</p>
+          </div>
+          <span class="badge" id="admin-table-citas-count" style="background: var(--primary-100); color: var(--primary-800); font-weight: 700; padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.8rem;">0 citas</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="admin-citas-table">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Paciente</th>
+                <th>Médico Especialista</th>
+                <th>Motivo de Consulta</th>
+                <th>Estado</th>
+                <th style="text-align: right;">Acciones de Emergencia</th>
+              </tr>
+            </thead>
+            <tbody id="admin-citas-table-body">
+              <!-- Renderizado dinámico desde app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== AUTH MODAL (LOGIN / REGISTER) ==================== -->
+  <div class="modal-overlay" id="modal-auth" role="dialog" aria-modal="true" aria-labelledby="modal-auth-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-auth-title">Acceso a Vitalis Care</h3>
+        <button class="modal-close-btn" id="modal-auth-close" role="button" aria-label="Cerrar ventana de autenticación" title="Cerrar ventana">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- TABS LOGIN / REGISTER -->
+        <div class="tab-container" style="margin-bottom: 1.25rem;">
+          <button class="tab-btn active" id="auth-tab-login-btn">Iniciar Sesión</button>
+          <button class="tab-btn" id="auth-tab-register-btn">Registrar Nuevo Paciente</button>
+        </div>
+
+        <!-- FORM LOGIN -->
+        <form id="form-login">
+          <div class="form-group">
+            <label class="form-label" for="login-email">Correo Electrónico</label>
+            <input type="email" id="login-email" class="form-control" placeholder="ejemplo@citas.local" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Contraseña</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary btn-block btn-close-auth" style="flex: 1;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary btn-block" style="flex: 2;">
+              Ingresar al Sistema
+            </button>
+          </div>
+          <div style="margin-top: 1.25rem; padding: 0.65rem 0.85rem; background: var(--slate-100); border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--slate-600); text-align: center; border: 1px dashed var(--slate-300);">
+            <span style="font-weight: 600;">Acceso rápido de prueba:</span>
+            <button type="button" id="demo-login-paciente" style="background: none; border: none; color: var(--primary-600); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0 4px; font-size: inherit;">Paciente</button> &bull;
+            <button type="button" id="demo-login-medico" style="background: none; border: none; color: var(--accent-teal); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0 4px; font-size: inherit;">Médico</button> &bull;
+            <button type="button" id="demo-login-admin" style="background: none; border: none; color: var(--accent-indigo); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0 4px; font-size: inherit;">Admin</button>
+          </div>
+        </form>
+
+        <!-- FORM REGISTER -->
+        <form id="form-register" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="reg-nombre">Nombre Completo</label>
+            <input type="text" id="reg-nombre" class="form-control" placeholder="Juan Pérez" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-email">Correo Electrónico</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="juan@ejemplo.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Contraseña</label>
+            <input type="password" id="reg-password" class="form-control" placeholder="Mínimo 6 caracteres" required autocomplete="new-password">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="reg-nacimiento">Fecha de Nacimiento</label>
+              <input type="date" id="reg-nacimiento" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-telefono">Teléfono</label>
+              <input type="tel" id="reg-telefono" class="form-control" placeholder="555-0199" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="cedula">🪪 Cédula de Identidad</label>
+              <input type="number" id="cedula" class="form-control" placeholder="Número de Cédula" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="fotoDocumento">📄 Fotografía del Documento Físico</label>
+              <input type="file" id="fotoDocumento" class="form-control" accept="image/png, image/jpeg">
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary btn-block btn-close-auth" style="flex: 1;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-teal btn-block" style="flex: 2;">
+              Crear Cuenta
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== BOOKING MODAL ==================== -->
+  <div class="modal-overlay" id="modal-booking" role="dialog" aria-modal="true" aria-labelledby="modal-booking-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-booking-title">Confirmar Agendamiento de Cita</h3>
+        <button class="modal-close-btn" id="modal-booking-close" role="button" aria-label="Cerrar ventana de agendamiento" title="Cerrar ventana">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-booking">
+          <input type="hidden" id="booking-medico-id">
+          <input type="hidden" id="booking-inicio">
+          <input type="hidden" id="booking-fin">
+
+          <div class="card" style="background: var(--primary-50); border-color: var(--primary-200); margin-bottom: 1.25rem; padding: 1rem;">
+            <div style="font-weight: 700; color: var(--primary-900); font-size: 1.05rem;" id="booking-doctor-name">Dr(a). Médico</div>
+            <div style="font-size: 0.85rem; color: var(--primary-700); font-weight: 500;" id="booking-doctor-spec">Especialidad</div>
+            <div style="font-size: 0.9rem; font-weight: 600; color: var(--slate-700); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.4rem;" id="booking-time-display">
+              📅 Horario Seleccionado
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="booking-motivo">Motivo o Síntomas de la Consulta</label>
+            <textarea id="booking-motivo" class="form-control" rows="3" placeholder="Describa brevemente el motivo de su visita médica (ej. Revisión de rutina, dolor torácico, control...)" required></textarea>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary btn-block btn-close-booking" style="flex: 1;">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary btn-block" style="flex: 2;">
+              Confirmar y Reservar Cita
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DOCUMENT VIEWER MODAL ==================== -->
+  <div class="modal-overlay" id="modal-document-viewer" role="dialog" aria-modal="true" aria-labelledby="modal-doc-title">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 id="modal-doc-title">🪪 Documento de Identidad del Paciente</h3>
+        <button class="modal-close-btn" id="modal-doc-close" role="button" aria-label="Cerrar visor de documento" title="Cerrar visor">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 1.25rem;">
+        <div id="modal-doc-info" style="margin-bottom: 1rem; font-size: 0.95rem; color: var(--slate-700); font-weight: 500;">
+          Paciente: <strong id="modal-doc-patient-name">-</strong> &bull; Cédula: <strong id="modal-doc-patient-cedula">-</strong>
+        </div>
+        <div style="background: var(--slate-100); border: 1px solid var(--slate-200); border-radius: var(--radius-md); padding: 0.75rem; display: flex; justify-content: center; align-items: center; min-height: 250px;">
+          <img id="modal-doc-image" src="" alt="Documento de Identidad" style="max-width: 100%; max-height: 420px; object-fit: contain; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);">
+        </div>
+        <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+          <a id="modal-doc-external-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+            <span>↗️</span> Abrir Imagen Original en Nueva Pestaña
+          </a>
+          <button type="button" class="btn btn-primary btn-sm" id="modal-doc-btn-dismiss">
+            Cerrar Visor
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATIONS CONTAINER ==================== -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-content">
+      <p><strong>Vitalis Care</strong> &copy; 2026. Plataforma Médica de Citas y Salud Digital. Desarrollado con Clean Architecture en C# / .NET 9 y Cloud Firestore.</p>
+      <nav class="footer-links" aria-label="Enlaces legales y de privacidad">
+        <a href="#privacidad" id="link-privacy-policy" class="footer-link">Política de Privacidad (HIPAA/GDPR)</a>
+        <span class="footer-separator" aria-hidden="true">&bull;</span>
+        <a href="#terminos" id="link-terms-of-service" class="footer-link">Términos de Servicio</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- ==================== SCRIPT PRINCIPAL ==================== -->
+  <script type="module" src="js/app.js?v=13"></script>
+</body>
+</html>

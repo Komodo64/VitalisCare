@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Informe Integral de Pruebas de Software (QA) - Vitalis Care</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --secondary: #0d9488;
+      --bg: #ffffff;
+      --text: #1e293b;
+      --border: #cbd5e1;
+      --code-bg: #f1f5f9;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --warning: #d97706;
+      --warning-bg: #fef3c7;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background-color: var(--bg);
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    h1 {
+      color: var(--primary-dark);
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 12px;
+      font-size: 2rem;
+      margin-top: 0;
+    }
+    h2 {
+      color: var(--primary);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      margin-top: 32px;
+      font-size: 1.5rem;
+    }
+    h3 {
+      color: #334155;
+      margin-top: 24px;
+      font-size: 1.2rem;
+    }
+    blockquote {
+      background: #f8fafc;
+      border-left: 4px solid var(--primary);
+      margin: 16px 0;
+      padding: 12px 16px;
+      color: #475569;
+      font-style: italic;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    code {
+      background-color: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, Monaco, 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #0369a1;
+    }
+    pre {
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+    pre code {
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .badge-success {
+      background-color: var(--success-bg);
+      color: var(--success);
+    }
+    .print-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    .print-btn:hover {
+      background: var(--primary-dark);
+    }
+    @media print {
+      .print-btn { display: none; }
+      body { max-width: 100%; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+
+  <h1>🧪 INFORME INTEGRAL DE PRUEBAS DE SOFTWARE (QA): VITALIS CARE</h1>
+  <blockquote>
+    <strong>Plataforma de Gestión de Citas Médicas y Salud Digital</strong><br>
+    <em>Documento formal de Aseguramiento de Calidad para sustentación académica ante jurados y profesores.</em>
+  </blockquote>
+
+  <h2>📑 1. Resumen Ejecutivo de la Estrategia de Calidad</h2>
+  <p>Para garantizar la estabilidad, confiabilidad médica y seguridad de <strong>Vitalis Care</strong>, se implementó una estrategia piramidal de pruebas que abarca múltiples niveles de verificación:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Modalidad de Prueba</th>
+        <th>Objetivo Principal</th>
+        <th>Herramienta / Framework</th>
+        <th>Cantidad</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Pruebas de Humo (Smoke Testing)</strong></td>
+        <td>Verificar la "salud vital" e integridad básica del sistema en segundos antes de pruebas profundas.</td>
+        <td>Node.js Test Runner (<code>node:test</code>)</td>
+        <td>6 pruebas</td>
+        <td><span class="badge badge-success">✅ 100% Pasadas</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pruebas de Aceptación (Acceptance / UAT)</strong></td>
+        <td>Validar que el sistema cumpla con los criterios y flujos de valor de Pacientes, Médicos y Admins (BDD).</td>
+        <td>Node.js Test Runner (<code>node:test</code>)</td>
+        <td>7 escenarios</td>
+        <td><span class="badge badge-success">✅ 100% Pasadas</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pruebas Exploratorias (Exploratory)</strong></td>
+        <td>Investigar límites temporales, ataques de inyección, concurrencia y resiliencia mediante Charters SBTM.</td>
+        <td>Node.js Test Runner (<code>node:test</code>)</td>
+        <td>12 pruebas</td>
+        <td><span class="badge badge-success">✅ 100% Pasadas</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pruebas Unitarias de Backend</strong></td>
+        <td>Validar la lógica aislada de casos de uso y repositorios bajo Clean Architecture.</td>
+        <td>.NET 9 + xUnit + Moq</td>
+        <td>19 pruebas</td>
+        <td><span class="badge badge-success">✅ 100% Pasadas</span></td>
+      </tr>
+      <tr>
+        <td><strong>Pruebas Unitarias de Frontend</strong></td>
+        <td>Validar algoritmos de división de turnos, sanitización XSS y normalización de credenciales.</td>
+        <td>Node.js Test Runner (<code>node:test</code>)</td>
+        <td>19 pruebas</td>
+        <td><span class="badge badge-success">✅ 100% Pasadas</span></td>
+      </tr>
+      <tr style="background-color: #f1f5f9; font-weight: bold;">
+        <td colspan="3">TOTAL CONSOLIDADO DE PRUEBAS</td>
+        <td>63 pruebas</td>
+        <td><span class="badge badge-success">✅ 100% Éxito</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>💨 2. Pruebas de Humo (Smoke Testing)</h2>
+  <h3>2.1 Definición y Propósito</h3>
+  <p>El <strong>Smoke Testing</strong> (también conocido como <em>Build Verification Testing</em>) es una suite rápida de pruebas superficiales cuyo propósito es responder a la pregunta: <em>"¿El sistema está lo suficientemente estable como para ser probado en profundidad, o la compilación básica está rota?"</em>. Si una sola prueba de humo falla, el despliegue se detiene inmediatamente.</p>
+
+  <h3>2.2 Casos de Prueba Ejecutados (<code>tests/smoke.test.js</code>)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Caso de Humo</th>
+        <th>Verificación Técnica</th>
+        <th>Resultado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>SMK-01</strong></td>
+        <td>Integridad de Archivos Críticos</td>
+        <td>Verifica que <code>index.html</code>, <code>styles.css</code>, <code>app.js</code>, <code>firebase-config.js</code> y <code>firebase-service.js</code> existan y tengan contenido.</td>
+        <td><span class="badge badge-success">✅ Superado</span></td>
+      </tr>
+      <tr>
+        <td><strong>SMK-02</strong></td>
+        <td>Disponibilidad de Especialistas</td>
+        <td>Comprueba que el catálogo semilla tenga al menos 2 médicos con licencia, especialidad y turnos.</td>
+        <td><span class="badge badge-success">✅ Superado</span></td>
+      </tr>
+      <tr>
+        <td><strong>SMK-03</strong></td>
+        <td>Presencia de Roles del Sistema</td>
+        <td>Valida que existan usuarios configurados para los roles <code>Admin</code>, <code>Medico</code> y <code>Paciente</code>.</td>
+        <td><span class="badge badge-success">✅ Superado</span></td>
+      </tr>
+      <tr>
+        <td><strong>SMK-04</strong></td>
+        <td>Vitalidad de Autenticación</td>
+        <td>Prueba el login de los 3 perfiles demo (<code>admin@citas.local</code>, <code>ana@citas.local</code>, <code>maria@citas.local</code>).</td>
+        <td><span class="badge badge-success">✅ Superado</span></td>
+      </tr>
+      <tr>
+        <td><strong>SMK-05</strong></td>
+        <td>Configuración de Firebase Cloud</td>
+        <td>Valida la presencia de <code>apiKey</code>, <code>projectId: "vitalis-care-f0e5e"</code> y <code>authDomain</code>.</td>
+        <td><span class="badge badge-success">✅ Superado</span></td>
+      </tr>
+      <tr>
+        <td><strong>SMK-06</strong></td>
+        <td>Integridad Estructural de Citas</td>
+        <td>Confirma que el modelo de datos de citas exija fechas cronológicas y estado inicial <code>Pendiente</code>.</td>
+        <td><span class="badge badge-success">✅ Superado</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>🎯 3. Pruebas de Aceptación (Acceptance Testing / UAT)</h2>
+  <h3>3.1 Metodología BDD (Behavior-Driven Development)</h3>
+  <p>Las Pruebas de Aceptación validan el software desde la perspectiva del usuario mediante historias estructuradas en:</p>
+  <ul>
+    <li><strong>Dado que (Given):</strong> Contexto inicial o precondición.</li>
+    <li><strong>Cuando (When):</strong> Acción realizada por el actor.</li>
+    <li><strong>Entonces (Then):</strong> Respuesta verificable esperada.</li>
+  </ul>
+
+  <h3>3.2 Historias de Usuario Evaluadas (<code>tests/acceptance.test.js</code>)</h3>
+  <ul>
+    <li><strong>HU-01 [Paciente - Reserva Exitosa]:</strong> Dado un paciente autenticado y un especialista libre, cuando agenda un turno, el sistema crea la cita en estado <code>Pendiente</code> y descuenta la franja horaria. (✅ <strong>Aprobado</strong>)</li>
+    <li><strong>HU-02 [Integridad Clínica - Anti-Solapamiento]:</strong> Si un médico ya tiene una cita de 10:00 a 11:00, cualquier intento de reserva de otro paciente en ese rango es <strong>rechazado</strong> automáticamente. (✅ <strong>Aprobado</strong>)</li>
+    <li><strong>HU-03 [Médico - Ciclo de Atención]:</strong> El médico aprueba la cita pasando su estado a <code>Confirmada</code> y tras la atención la cierra en <code>Completada</code>. (✅ <strong>Aprobado</strong>)</li>
+    <li><strong>HU-04 [Cancelación Aceptada > 24h]:</strong> Paciente solicita cancelar con 48h de anticipación &rarr; Cancelación exitosa y estado <code>Cancelada</code>. (✅ <strong>Aprobado</strong>)</li>
+    <li><strong>HU-05 [Cancelación Rechazada < 24h]:</strong> Paciente intenta cancelar con solo 8 horas de antelación &rarr; El sistema rechaza la solicitud exigiendo la política de 24 horas. (✅ <strong>Aprobado</strong>)</li>
+    <li><strong>HU-06 [Privacidad de Datos]:</strong> El paciente únicamente puede visualizar y consultar sus propias citas médicas. (✅ <strong>Aprobado</strong>)</li>
+    <li><strong>HU-07 [Administrador - Métricas]:</strong> El tablero de control calcula con exactitud matemática el total de citas, pendientes, confirmadas y canceladas. (✅ <strong>Aprobado</strong>)</li>
+  </ul>
+
+  <h2>🕵️ 4. Pruebas Exploratorias (Exploratory Testing)</h2>
+  <h3>4.1 Metodología SBTM (Session-Based Test Management)</h3>
+  <p>El testeo exploratorio investiga bordes, estrés, concurrencia y seguridad mediante <strong>Cartas de Prueba (Charters)</strong>:</p>
+
+  <pre><code>┌────────────────────────────────────────────────────────────────────────┐
+│ CHARTER 1: Seguridad y Payloads Maliciosos                              │
+│ • Exp-01: Inyección XSS en motivo de cita -> Sanitizado.                │
+│ • Exp-02: Strings SQL ("DROP TABLE") -> Tratado como texto seguro.     │
+│ • Exp-03: Textos masivos (50,000 chars) -> Truncado estricto a 500.   │
+│ • Exp-04: Bytes nulos (\0) -> Purgados antes de guardar.               │
+├────────────────────────────────────────────────────────────────────────┤
+│ CHARTER 2: Límites Temporales (Boundary Values)                        │
+│ • Exp-05: Cancelación con 24h y 1s de anticipación -> PERMITIDA.       │
+│ • Exp-06: Cancelación con 23h 59m 59s -> RECHAZADA por política.       │
+│ • Exp-07: Cruce de medianoche (23:30 a 00:30) -> Duración exacta 60m.  │
+│ • Exp-08: Duración 0 segundos o fechas invertidas -> Invalidadas.     │
+├────────────────────────────────────────────────────────────────────────┤
+│ CHARTER 3: Concurrencia y Condición de Carrera (Race Conditions)       │
+│ • Exp-09: Dos reservas asíncronas simultáneas en el mismo ms           │
+│           -> Solo una es asignada; la otra se rechaza por colisión.    │
+├────────────────────────────────────────────────────────────────────────┤
+│ CHARTER 4: Fuzzing de Caracteres y Normalización                      │
+│ • Exp-10: Nombres con tildes, diéresis y emojis ("Dr. Müller 🩺").     │
+│ • Exp-11: Normalización de emails con espacios y mayúsculas.          │
+│ • Exp-12: Contraseñas con alta entropía y símbolos especiales.         │
+└────────────────────────────────────────────────────────────────────────┘</code></pre>
+
+  <h2>💻 5. Cómo Ejecutar las Pruebas</h2>
+  <pre><code># Ejecutar las 63 pruebas consolidadas en PowerShell:
+.\run-tests.ps1
+
+# O mediante npm de manera individual:
+npm run test:smoke        # Pruebas de Humo
+npm run test:acceptance   # Pruebas de Aceptación (UAT)
+npm run test:exploratory  # Pruebas Exploratorias
+dotnet test               # Pruebas Backend C# xUnit</code></pre>
+
+</body>
+</html>

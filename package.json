@@ -1,0 +1,15 @@
+{
+  "name": "vitalis-care-tests",
+  "version": "1.0.0",
+  "description": "Suite de pruebas unitarias para la plataforma médica Vitalis Care en JavaScript / Node.js",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:smoke": "node --test tests/smoke.test.js",
+    "test:acceptance": "node --test tests/acceptance.test.js",
+    "test:exploratory": "node --test tests/exploratory.test.js",
+    "test:all": "node --test tests/*.test.js"
+  },
+  "keywords": ["citas-medicas", "vitalis-care", "unit-tests"],
+  "author": "",
+  "license": "MIT"
+}
