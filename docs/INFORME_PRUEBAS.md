@@ -8,14 +8,16 @@
 
 Para garantizar la estabilidad, confiabilidad médica y seguridad de **Vitalis Care**, se implementó una estrategia piramidal de pruebas que abarca múltiples niveles de verificación:
 
-| Modalidad de Prueba | Objetivo Principal | Herramienta / Framework | Cantidad de Pruebas | Estado |
-| :--- | :--- | :--- | :---: | :---: |
-| **Pruebas de Humo (Smoke Testing)** | Verificar la "salud vital" e integridad básica del sistema en segundos antes de pruebas profundas. | Node.js Test Runner (`node:test`) | 6 pruebas | ✅ 100% Pasadas |
-| **Pruebas de Aceptación (Acceptance / UAT)** | Validar que el sistema cumpla con los criterios y flujos de valor de Pacientes, Médicos y Admins (BDD). | Node.js Test Runner (`node:test`) | 7 escenarios | ✅ 100% Pasadas |
-| **Pruebas Exploratorias (Exploratory)** | Investigar límites temporales, ataques de inyección, concurrencia y resiliencia mediante Charters SBTM. | Node.js Test Runner (`node:test`) | 12 pruebas | ✅ 100% Pasadas |
-| **Pruebas Unitarias de Backend** | Validar la lógica aislada de casos de uso y repositorios bajo Clean Architecture. | .NET 9 + xUnit + Moq | 19 pruebas | ✅ 100% Pasadas |
-| **Pruebas Unitarias de Frontend** | Validar algoritmos de división de turnos, sanitización XSS y normalización de credenciales. | Node.js Test Runner (`node:test`) | 19 pruebas | ✅ 100% Pasadas |
-| **TOTAL CONSOLIDADO** | **Cobertura integral de extremo a extremo del sistema** | **xUnit + Node.js** | **63 pruebas** | **✅ 100% Éxito** |
+| Modalidad de Prueba | Objetivo Principal | Herramienta / Framework | Cantidad de Pruebas | Documento Formal | Estado |
+| :--- | :--- | :--- | :---: | :---: | :---: |
+| **Pruebas Unitarias Backend** | Lógica de negocio pura de casos de uso y aislamiento con Moq. | .NET 9 + xUnit + Moq | 19 pruebas | [`EVI-QA-UT-001`](./EVI-QA-UT-001_INFORME_PRUEBAS_UNITARIAS.md) | ✅ 100% Pasadas |
+| **Pruebas de Humo (Smoke)** | Vitalidad del core de la API (`/healthz`, endpoints primarios). | .NET 9 (`WebApplicationFactory`) + Node.js | 11 pruebas (5 .NET + 6 JS) | [`EVI-QA-SMK-002`](./EVI-QA-SMK-002_INFORME_PRUEBAS_HUMO.md) | ✅ 100% Pasadas |
+| **Pruebas de Integración** | Pipeline HTTP, serialización DTO y persistencia relacional EF Core. | .NET 9 (`WebApplicationFactory`) | 5 pruebas | [`EVI-QA-INT-003`](./EVI-QA-INT-003_INFORME_PRUEBAS_INTEGRACION.md) | ✅ 100% Pasadas |
+| **Pruebas de Aceptación (BDD)** | Criterios de aceptación Given-When-Then (Gherkin formal HU-01 a HU-07). | .NET 9 + Node.js BDD Runner | 14 pruebas (7 .NET + 7 JS) | [`EVI-QA-UAT-004`](./EVI-QA-UAT-004_INFORME_PRUEBAS_ACEPTACION_BDD.md) | ✅ 100% Pasadas |
+| **Pruebas de Rendimiento** | Carga concurrente sostenida, P95 < 150ms y cero fallos (SLA). | NBomber v6.6.0 (.NET 9 C#) | 157,621 peticiones | [`EVI-QA-PERF-005`](./EVI-QA-PERF-005_INFORME_PRUEBAS_RENDIMIENTO.md) | ✅ SLA Cumplido |
+| **Pruebas Exploratorias** | Investigación SBTM de ataques XSS, DoS, concurrencia y límites 24h. | Node.js Test Runner (`node:test`) | 12 pruebas | [`EVI-QA-EXP-006`](./EVI-QA-EXP-006_ACTA_PRUEBAS_EXPLORATORIAS.md) | ✅ 100% Pasadas |
+| **Reglas de UI, Auth y Slots** | Alta médica admin, bloqueo temporal y liberación reactiva de turnos. | Node.js Test Runner (`node:test`) | 24 pruebas | [`EVI-QA-SUM-007`](./EVI-QA-SUM-007_MATRIZ_TRAZABILIDAD_Y_RESUMEN_CALIDAD.md) | ✅ 100% Pasadas |
+| **TOTAL CONSOLIDADO** | **Cobertura integral de extremo a extremo del sistema** | **xUnit + NBomber + Node.js** | **85 pruebas automatizadas** | **Dossier 7 Documentos** | **✅ 100% Éxito** |
 
 ---
 

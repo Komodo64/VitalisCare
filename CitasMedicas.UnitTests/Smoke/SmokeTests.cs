@@ -14,7 +14,19 @@ public class SmokeTests : IClassFixture<WebApplicationFactory<Program>>
         _client = factory.CreateClient();
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Smoke")]
+    public async Task HealthCheck_Retorna200_Y_EstadoHealthy()
+    {
+        // Act (Verificación rápida de disponibilidad del core de la API /healthz)
+        var response = await _client.GetAsync("/healthz");
+        
+        // Assert
+        response.EnsureSuccessStatusCode(); // HTTP 200 OK
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Healthy", content);
+    }
+
+    [Fact, Trait("Category", "Smoke")]
     public async Task Smoke_01_ApiStatus_DebeResponderOk_Y_ListarEndpoints()
     {
         // Act
@@ -31,7 +43,7 @@ public class SmokeTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(endpoints.GetArrayLength() > 0);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Smoke")]
     public async Task Smoke_02_TelemetriaRecursos_DebeEstarSaludable_Y_ReportarMemoria()
     {
         // Act
@@ -48,7 +60,7 @@ public class SmokeTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(root.GetProperty("threadsCount").GetInt32() > 0);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Smoke")]
     public async Task Smoke_03_CatalogoMedicos_DebeEstarDisponible_ConDoctoresSemilla()
     {
         // Act
@@ -62,7 +74,7 @@ public class SmokeTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(doc.RootElement.GetArrayLength() >= 2);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Smoke")]
     public async Task Smoke_04_SyncState_DebeRetornarEstructuraCentralizada()
     {
         // Act

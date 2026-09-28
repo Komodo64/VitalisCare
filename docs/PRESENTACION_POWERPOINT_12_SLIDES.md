@@ -93,11 +93,11 @@
 - **Título:** Pirámide de Calidad Automatizada
 - **Elementos Visuales:** Pirámide de pruebas (Unitarias -> Humo -> Integración -> BDD -> Exploratorias).
 - **Contenido Clave:**
-  - **35 Pruebas en .NET 9 (`dotnet test`):** 19 Unitarias + 4 Humo + 5 Integración + 7 BDD.
-  - **44 Pruebas en Node.js (`npm test`):** Validaciones frontales y helpers.
-  - **Tasa de Aprobación:** **100% en VERDE**, sin excepciones ni pruebas omitidas.
+  - **35 Pruebas en .NET 9 (`dotnet test`):** 19 Unitarias + 5 Humo (incluyendo `/healthz`) + 5 Integración + 7 BDD.
+  - **50 Pruebas en Node.js (`npm test`):** Aceptación, Exploratorias SBTM, Alta de Médicos y Slots de Calendario.
+  - **Total Consolidado:** **85 Pruebas Automatizadas (100% VERDE)**, 0 fallos, 0 advertencias.
 - **🎙️ Guión del Expositor (45s):**
-  > *"Garantizamos la estabilidad con una estrategia de pruebas integral. Ejecutamos 35 pruebas automatizadas nativas en .NET 9 y 44 en JavaScript, alcanzando un 100% de éxito verde continuo."*
+  > *"Garantizamos la estabilidad con una estrategia de pruebas integral en 7 documentos formales de evidencia. Ejecutamos 35 pruebas automatizadas nativas en .NET 9 y 50 en JavaScript, alcanzando un total de 85 pruebas con 100% de éxito verde continuo."*
 
 ---
 

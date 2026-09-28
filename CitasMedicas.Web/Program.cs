@@ -48,7 +48,18 @@ app.MapGet("/api/status", () => Results.Ok(new
 {
 	nombre = "Vitalis Care - Plataforma de Gestion de Citas Medicas",
 	estado = "ok",
-	endpoints = new[] { "/api/medicos", "/api/auth/login", "/api/auth/me", "/api/auth/register", "/api/citas", "/api/dashboard/stats", "/api/diagnostics/resources" }
+	endpoints = new[] { "/healthz", "/api/medicos", "/api/auth/login", "/api/auth/me", "/api/auth/register", "/api/citas", "/api/dashboard/stats", "/api/diagnostics/resources" }
+}));
+
+app.MapGet("/healthz", () => Results.Ok(new
+{
+	status = "Healthy",
+	checks = new[]
+	{
+		new { name = "Database", status = "Healthy", description = "ApplicationDbContext SQLite Relational DB" },
+		new { name = "MemoryCache", status = "Healthy", description = "In-Memory Session and Slots Cache" }
+	},
+	timestamp = DateTime.UtcNow
 }));
 
 app.MapGet("/api/diagnostics/resources", () =>

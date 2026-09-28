@@ -1,0 +1,61 @@
+name: Vitalis Care CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build, Quality Assurance & Security Gates (.NET 9 + Node.js)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 9 SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Setup Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Restore .NET Dependencies
+      run: dotnet restore CitasMedicas.sln
+
+    - name: Build Solution (Release Mode & TreatWarningsAsErrors)
+      run: dotnet build CitasMedicas.sln --configuration Release --no-restore
+
+    - name: Run Smoke Tests Gate (< 30s)
+      run: dotnet test CitasMedicas.UnitTests/CitasMedicas.UnitTests.csproj --configuration Release --no-build --filter "Category=Smoke" --logger "trx;LogFileName=smoke-tests.trx"
+
+    - name: Run Full .NET Test Suite (Unit, Smoke, Integration, BDD) with Coverage
+      run: >
+        dotnet test CitasMedicas.UnitTests/CitasMedicas.UnitTests.csproj
+        --configuration Release
+        --no-build
+        --collect:"XPlat Code Coverage"
+        --results-directory ./TestResults
+        --logger "trx;LogFileName=test-results.trx"
+        -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover,cobertura
+
+    - name: Install NPM Test Dependencies
+      run: npm ci || npm install
+
+    - name: Run Node.js Acceptance & Exploratory Suites
+      run: npm test
+
+    - name: Upload Test Results Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-and-coverage
+        path: |
+          TestResults/
+          reports/

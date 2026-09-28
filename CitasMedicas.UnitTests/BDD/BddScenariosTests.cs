@@ -27,7 +27,7 @@ public class BddScenariosTests
         _dashboardService = new DashboardService(_dashboardRepoMock.Object);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "BDD")]
     public async Task HU01_DadoPacienteYMedicoDisponibles_CuandoReservaCitaValida_EntoncesSeRegistraEnEstadoPendiente()
     {
         // GIVEN (Dado que María López desea reservar consulta con la Dra. Ana García)
@@ -59,7 +59,7 @@ public class BddScenariosTests
         _citaRepoMock.Verify(r => r.AddAsync(It.Is<Cita>(c => c.Estado == EstadoCita.Pendiente && c.Motivo == "Consulta preventiva cardiológica"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "BDD")]
     public async Task HU02_DadoHorarioYaOcupado_CuandoOtroPacienteIntentaReservar_EntoncesSeRechazaPorSolapamiento()
     {
         // GIVEN (Dado que la especialista ya tiene una cita de 10:00 a 11:00)
@@ -77,7 +77,7 @@ public class BddScenariosTests
         Assert.Contains("El médico ya tiene una cita en ese horario", ex.Message);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "BDD")]
     public async Task HU03_DadoCitaPendiente_CuandoMedicoConfirmaYCompleta_EntoncesTransicionaCorrectamente()
     {
         // GIVEN (Dado una cita pendiente asignada al médico)
@@ -108,7 +108,7 @@ public class BddScenariosTests
         Assert.Equal(EstadoCita.Completada, cita.Estado);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "BDD")]
     public async Task HU04_DadoCitaConMasDe24HorasDeAnticipacion_CuandoPacienteCancela_EntoncesCancelacionEsAceptada()
     {
         // GIVEN (Dado una cita programada para dentro de 48 horas)
@@ -132,7 +132,7 @@ public class BddScenariosTests
         _citaRepoMock.Verify(r => r.Update(It.Is<Cita>(c => c.Estado == EstadoCita.Cancelada)), Times.Once);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "BDD")]
     public async Task HU05_DadoCitaConMenosDe24Horas_CuandoPacienteIntentaCancelar_EntoncesSeRechazaPorPoliticaClinica()
     {
         // GIVEN (Dado una cita agendada para dentro de solo 8 horas)
@@ -153,7 +153,7 @@ public class BddScenariosTests
         Assert.Equal(EstadoCita.Pendiente, cita.Estado); // El estado no cambia
     }
 
-    [Fact]
+    [Fact, Trait("Category", "BDD")]
     public async Task HU06_DadoCitasDeDistintosPacientes_CuandoPacienteConsulta_EntoncesSoloRetornaSusPropiasCitas()
     {
         // GIVEN (Dado que María tiene 2 citas y Carlos tiene 1)
@@ -178,7 +178,7 @@ public class BddScenariosTests
         Assert.All(citas, c => Assert.Equal(pacienteId, c.PacienteId));
     }
 
-    [Fact]
+    [Fact, Trait("Category", "BDD")]
     public async Task HU07_DadoRegistroOperativoClinico_CuandoAdminConsultaMetricas_EntoncesReporteConsolidadoEsExacto()
     {
         // GIVEN (Dado un consolidado operacional en la base de datos)

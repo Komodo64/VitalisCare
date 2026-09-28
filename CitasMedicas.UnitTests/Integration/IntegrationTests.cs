@@ -16,7 +16,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         _client = factory.CreateClient();
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Integration")]
     public async Task Integration_01_AuthRegister_And_Login_FlujoCompleto()
     {
         // 1. Registro de nuevo paciente en base relacional
@@ -45,7 +45,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(testEmail, doc.RootElement.GetProperty("email").GetString());
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Integration")]
     public async Task Integration_02_SyncUser_Y_SyncLogin_PersistenciaCentralizada()
     {
         var testEmail = $"sync.test.{Guid.NewGuid():N}@vitalis.local";
@@ -68,7 +68,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.OK, loginRes.StatusCode);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Integration")]
     public async Task Integration_03_CicloDeVidaCita_Crear_Confirmar_Completar()
     {
         // Generar horario dinámico no conflictivo para pruebas idempotentes
@@ -108,7 +108,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(completeRes.IsSuccessStatusCode);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Integration")]
     public async Task Integration_04_CancelacionCita_ActualizaEstadoACancelada()
     {
         var randomOffset = Random.Shared.Next(100, 9000);
@@ -141,7 +141,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(cancelRes.IsSuccessStatusCode);
     }
 
-    [Fact]
+    [Fact, Trait("Category", "Integration")]
     public async Task Integration_05_SyncState_ReflejaContadoresYListasConsistentes()
     {
         var response = await _client.GetAsync("/api/sync/state");
